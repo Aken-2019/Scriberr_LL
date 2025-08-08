@@ -32,9 +32,14 @@ tmp
 
 # Application data
 scriberr.db
-scriberr-backend/cmd
+scriberr-backend/cmd/scriberr/embedded_assets
 scriberr-backend/storage
 scriberr-backend/__pycache__
+# Scriberr's original test storage folder
 scriberr-backend/test-storage
+# Test storage folder generated under live test `air`
+scriberr-backend/cmd/scriberr/storage
+scriberr-backend/cmd/scriberr/cache
+# Test storage folder generated under container compose test 
 /storage
 /cache
