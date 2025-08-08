@@ -12,7 +12,7 @@ The base features can be found on the [Scriberr](https://github.com/rishikanthc/
   - A segment being played is automatically focused so users can interact with it more efficiently.
 - Clicks no more start playing the segment, but the default behaviors are reserved to select texts. It's more convinient for users to copy the transcripts and paste them to other places such as dictionaries. An additional play button is placed in every segment so users can use that to jump among segments.
 ### Planned Features
-- [ ] Add a function to scan the disk and discover the audios and transcripts, to let users import processed audios and transcripts.
+- [x] Add an entry to let users import transcripts for audios, so they can locally transcribe the audio and upload the transcript to a public site for sharing.
 - [ ] Add support for transcribing audios via external Whisper APIs, so it can be hosted on low end servers.
 - [ ] Add support for using S3 as the storage backend.
 
