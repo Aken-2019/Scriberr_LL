@@ -87,6 +87,7 @@ func main() {
 	mux.HandleFunc("GET /api/audio/file/{id}", middleware.AuthFunc(handlers.GetAudioFile))
 	mux.HandleFunc("GET /api/audio/{id}", middleware.AuthFunc(handlers.GetAudioRecord))
 	mux.HandleFunc("GET /api/audio/{id}/transcript/download", middleware.AuthFunc(handlers.DownloadTranscript))
+	mux.HandleFunc("POST /api/audio/{id}/transcript", middleware.AuthFunc(handlers.UploadTranscript))
 	mux.HandleFunc("PUT /api/audio/{id}", middleware.AuthFunc(handlers.UpdateAudioTitle))
 	mux.HandleFunc("DELETE /api/audio/{id}", middleware.AuthFunc(handlers.DeleteAudio))
 	mux.HandleFunc("POST /api/transcribe", middleware.AuthFunc(handlers.HandleTranscribe))

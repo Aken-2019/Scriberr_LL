@@ -752,6 +752,68 @@ func DownloadTranscript(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(content))
 }
 
+// UploadTranscript handles uploading a transcript for an existing audio record.
+func UploadTranscript(w http.ResponseWriter, r *http.Request) {
+    if r.Method != http.MethodPost {
+        writeJSONError(w, "Method not allowed", http.StatusMethodNotAllowed)
+        return
+    }
+
+    id := r.PathValue("id")
+    if id == "" {
+        writeJSONError(w, "Missing record ID", http.StatusBadRequest)
+        return
+    }
+
+    // Read and parse the request body
+    var transcriptData models.JSONTranscript
+    if err := json.NewDecoder(r.Body).Decode(&transcriptData); err != nil {
+        writeJSONError(w, "Invalid JSON payload", http.StatusBadRequest)
+        return
+    }
+
+    // Validate the transcript data
+    if len(transcriptData.Segments) == 0 {
+        writeJSONError(w, "Transcript contains no segments", http.StatusBadRequest)
+        return
+    }
+
+    // Convert transcript data to JSON string
+    transcriptJSON, err := json.Marshal(transcriptData)
+    if err != nil {
+        log.Printf("Error marshaling transcript JSON for audio ID %s: %v", id, err)
+        writeJSONError(w, "Failed to process transcript data", http.StatusInternalServerError)
+        return
+    }
+
+    // Update the database
+    db := database.GetDB()
+    query := "UPDATE audio_records SET transcript = ? WHERE id = ?"
+    result, err := db.Exec(query, string(transcriptJSON), id)
+    if err != nil {
+        log.Printf("Error updating transcript for audio ID %s: %v", id, err)
+        writeJSONError(w, "Database error", http.StatusInternalServerError)
+        return
+    }
+
+    // Check if the record was actually updated
+    rowsAffected, err := result.RowsAffected()
+    if err != nil {
+        log.Printf("Error getting rows affected for audio ID %s: %v", id, err)
+        writeJSONError(w, "Failed to verify update", http.StatusInternalServerError)
+        return
+    }
+
+    if rowsAffected == 0 {
+        writeJSONError(w, "Audio record not found", http.StatusNotFound)
+        return
+    }
+
+    log.Printf("Successfully updated transcript for audio ID %s", id)
+    w.WriteHeader(http.StatusOK)
+    json.NewEncoder(w).Encode(map[string]string{"status": "success", "message": "Transcript uploaded successfully"})
+}
+
 // generateTxtTranscript creates a plain text version of the transcript without timestamps
 func generateTxtTranscript(transcript models.JSONTranscript) string {
 	var lines []string

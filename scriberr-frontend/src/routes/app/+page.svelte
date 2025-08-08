@@ -2,7 +2,7 @@
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
 	import * as Popover from '$lib/components/ui/popover/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
-	import { FilePlus, LoaderCircle, LogOut, Mic, Upload, Youtube } from 'lucide-svelte';
+	import { FilePlus, LoaderCircle, LogOut, Mic, Upload, Youtube, FileText } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { cn } from '$lib/utils';
 	import { isAuthenticated } from '$lib/stores';
@@ -42,7 +42,7 @@
 	type JobStatus = 'processing' | 'completed' | 'failed';
 
 	// --- STATE ---
-	let fileInput: HTMLInputElement;
+	let fileInput: HTMLInputElement | null = $state(null);
 	let responseText = $state('');
 	let isUploading = $state(false);
 	let records: AudioRecord[] = $state([]);
@@ -61,6 +61,8 @@
 	let isYouTubeDialogOpen = $state(false);
 	let isTemplateDialogOpen = $state(false);
 	let selectedTemplate: SummaryTemplate | null = $state(null);
+	let transcriptFileInput: HTMLInputElement | null = $state(null);
+	let recordForTranscript: AudioRecord | null = $state(null);
 	let isSummarizeDialogOpen = $state(false);
 	let recordToSummarize: AudioRecord | null = $state(null);
 	let isChatDialogOpen = $state(false);
@@ -545,6 +547,45 @@
 		}
 	}
 
+	async function handleTranscriptUpload(event: Event) {
+		const input = event.target as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file || !recordForTranscript) return;
+
+		try {
+			// Read the file content as text
+			const fileContent = await file.text();
+			
+			// Parse the JSON to validate it's valid
+			const transcriptData = JSON.parse(fileContent);
+
+			const response = await fetch(`/api/audio/${recordForTranscript.id}/transcript`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: fileContent,  // Send the raw JSON
+				credentials: 'include'
+			});
+
+			if (!response.ok) {
+				const error = await response.json();
+				throw new Error(error.error || 'Failed to upload transcript');
+			}
+
+			toast.success('Transcript uploaded successfully');
+			// Refresh the records to show the updated transcript
+			await fetchRecords();
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : 'Failed to upload transcript';
+			toast.error('Upload failed', { description: errorMessage });
+		} finally {
+			// Reset the input
+			if (input) input.value = '';
+			recordForTranscript = null;
+		}
+	}
+
 	// --- UI HANDLERS ---
 	async function handleTerminateJob(jobId: string) {
 		const jobToTerminate = activeJobs.find((job) => job.id === jobId);
@@ -585,6 +626,11 @@
 	function openModelSelectDialog(record: AudioRecord) {
 		recordToTranscribe = record;
 		isModelSelectOpen = true;
+	}
+
+	function openUploadTranscriptDialog(record: AudioRecord) {
+		recordForTranscript = record;
+		transcriptFileInput?.click();
 	}
 
 	function handleStartTranscription(
@@ -669,7 +715,7 @@
 								<Button
 									variant="ghost"
 									class="w-full justify-start gap-2 px-2 outline-none hover:bg-gray-700 hover:text-gray-100"
-									onclick={() => fileInput.click()}
+									onclick={() => fileInput?.click()}
 									disabled={isUploading}
 								>
 									<Upload class="h-4 w-4" />
@@ -753,7 +799,15 @@
 						onOpenModelSelect={openModelSelectDialog}
 						onOpenSummarizeDialog={openSummarizeDialog}
 						onOpenChatDialog={openChatDialog}
+						onUploadTranscript={openUploadTranscriptDialog}
 						onDeleteRecord={handleDelete}
+					/>
+					<input
+						type="file"
+						accept=".json"
+						class="hidden"
+						bind:this={transcriptFileInput}
+						onchange={handleTranscriptUpload}
 					/>
 				</Tabs.Content>
 				<Tabs.Content value="jobs">
