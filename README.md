@@ -1,4 +1,4 @@
-# Scriberr_LL: A Customized Version of Scriberr for Language Learning
+# Scriberr_LL: Customized Scriberr Specifically for Language Learning
 
 ## Introduction
 The repo is based on the fantastic [Scriberr](https://github.com/rishikanthc/Scriberr) project and I'm adding more features to make it better for language learning.
