@@ -83,6 +83,7 @@ func main() {
 	mux.HandleFunc("GET /api/auth/check", handlers.CheckAuthRedirect)
 	mux.HandleFunc("POST /api/audio", middleware.AuthFunc(handlers.CreateAudio))
 	mux.HandleFunc("POST /api/youtube", middleware.AuthFunc(handlers.DownloadYouTubeAudio))
+	mux.HandleFunc("POST /api/url-audio", middleware.AuthFunc(handlers.DownloadURLAudio))
 	mux.HandleFunc("GET /api/audio/all", middleware.AuthFunc(handlers.GetAllAudioRecords))
 	mux.HandleFunc("GET /api/audio/file/{id}", middleware.AuthFunc(handlers.GetAudioFile))
 	mux.HandleFunc("GET /api/audio/{id}", middleware.AuthFunc(handlers.GetAudioRecord))

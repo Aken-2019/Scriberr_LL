@@ -2,7 +2,7 @@
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
 	import * as Popover from '$lib/components/ui/popover/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
-	import { FilePlus, LoaderCircle, LogOut, Mic, Upload, Youtube, FileText } from 'lucide-svelte';
+	import { FilePlus, LoaderCircle, LogOut, Mic, Upload, Youtube, FileText, Link as LinkIcon } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { cn } from '$lib/utils';
 	import { isAuthenticated } from '$lib/stores';
@@ -19,6 +19,7 @@
 	import TemplateDialog from '$lib/components/page/TemplateDialog.svelte';
 	import SummarizeDialog from '$lib/components/page/SummarizeDialog.svelte';
 	import YouTubeDialog from '$lib/components/page/YouTubeDialog.svelte';
+	import URLDialog from '$lib/components/page/URLDialog.svelte';
 	import ChatDialog from '$lib/components/page/ChatDialog.svelte';
 
 	// --- TYPES ---
@@ -59,6 +60,7 @@
 	let recordToTranscribe: AudioRecord | null = $state(null);
 	let isRecorderOpen = $state(false);
 	let isYouTubeDialogOpen = $state(false);
+	let isURLDialogOpen = $state(false);
 	let isTemplateDialogOpen = $state(false);
 	let selectedTemplate: SummaryTemplate | null = $state(null);
 	let transcriptFileInput: HTMLInputElement | null = $state(null);
@@ -450,6 +452,55 @@
 		}
 	}
 
+	async function handleURLDownload(url: string, title: string) {
+		isUploading = true;
+		responseText = 'Downloading audio from URL...';
+
+		// Create a temporary record to show in the UI
+		const tempId = `temp-${Date.now()}`;
+		const tempRecord: AudioRecord = {
+			id: tempId,
+			title: title,
+			created_at: new Date().toISOString(),
+			transcript: '{}',
+			downloading: true
+		};
+
+		// Add to records list
+		records = [tempRecord, ...records];
+
+		try {
+			const response = await fetch('/api/url-audio', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ url, title }),
+				credentials: 'include'
+			});
+			const result = await response.json();
+
+			if (!response.ok) {
+				throw new Error(result.error || 'Unknown download error');
+			}
+
+			toast.success('Audio download successful!', { description: `Audio ID: ${result.id}` });
+
+			// Remove temporary record and fetch updated records
+			records = records.filter((r) => r.id !== tempId);
+			await fetchRecords();
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+			toast.error('Audio download failed', { description: errorMessage });
+
+			// Remove temporary record on error
+			records = records.filter((r) => r.id !== tempId);
+		} finally {
+			isUploading = false;
+			responseText = '';
+		}
+	}
+
 	async function handleYouTubeDownload(url: string, title: string) {
 		isUploading = true;
 		responseText = 'Downloading YouTube audio...';
@@ -751,6 +802,15 @@
 									<Youtube class="h-4 w-4" />
 									YouTube
 								</Button>
+								<Button
+									variant="ghost"
+									class="w-full justify-start gap-2 px-2 hover:bg-gray-700 hover:text-gray-100"
+									onclick={() => (isURLDialogOpen = true)}
+									disabled={isUploading}
+								>
+									<LinkIcon class="h-4 w-4" />
+									From URL
+								</Button>
 							</div>
 						</Popover.Content>
 					</Popover.Root>
@@ -780,8 +840,9 @@
 					<Tabs.Trigger
 						value="audio"
 						class="h-8 text-gray-100 data-[state=active]:bg-gray-800 data-[state=active]:text-blue-400"
-						>Audio</Tabs.Trigger
 					>
+						Audio
+					</Tabs.Trigger>
 					<Tabs.Trigger
 						value="jobs"
 						class="h-8 text-gray-100 data-[state=active]:bg-gray-800 data-[state=active]:text-blue-400"
@@ -798,8 +859,9 @@
 					<Tabs.Trigger
 						value="templates"
 						class="h-8 text-gray-100 data-[state=active]:bg-gray-800 data-[state=active]:text-blue-400"
-						>Templates</Tabs.Trigger
 					>
+						Templates
+					</Tabs.Trigger>
 				</Tabs.List>
 				<Tabs.Content value="audio">
 					<AudioTab
@@ -860,7 +922,15 @@
 
 <RecorderDialog bind:open={isRecorderOpen} onSave={handleSaveRecording} />
 
-<YouTubeDialog bind:open={isYouTubeDialogOpen} onDownload={handleYouTubeDownload} />
+<YouTubeDialog
+	bind:open={isYouTubeDialogOpen}
+	onDownload={handleYouTubeDownload}
+/>
+
+<URLDialog
+	bind:open={isURLDialogOpen}
+	onDownload={handleURLDownload}
+/>
 
 <TemplateDialog
 	bind:open={isTemplateDialogOpen}
