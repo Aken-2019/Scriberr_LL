@@ -326,8 +326,8 @@ func updateJobStatus(jobID string, status JobStatus, errorMsg string) {
 // getOpenAiModels reads custom models from environment variables
 func getOpenAiModels() []string {
 	// Read custom models from environment variable
-	// Format: SRIBERR_OPENAI_MODELS="model1,model2,model3"
-	if customModelsStr := os.Getenv("SRIBERR_OPENAI_MODELS"); customModelsStr != "" {
+	// Format: SCRIBERR_OPENAI_MODELS="model1,model2,model3"
+	if customModelsStr := os.Getenv("SCRIBERR_OPENAI_MODELS"); customModelsStr != "" {
 		models := strings.Split(customModelsStr, ",")
 		// Trim whitespace and filter out empty strings
 		var result []string
