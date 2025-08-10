@@ -72,22 +72,10 @@
 
 	// Model/Template selection state
 	let selectedModel = $state('small'); // Default model for transcription
-	let selectedSummaryModel = $state('gpt-3.5-turbo'); // Default model for summarization
+	let selectedSummaryModel = $state('gpt-5-nano'); // Default model for summarization
 	let selectedTemplateId = $state('');
 	const modelSizes = ['tiny', 'base', 'small', 'medium', 'large-v1', 'large-v2', 'large-v3'];
-	let summaryModelOptions = $state([
-		'gpt-4',
-		'gpt-4-turbo',
-		'gpt-4o',
-		'gpt-4o-mini',
-		'gpt-4.1',
-		'gpt-4.1-mini',
-		'gpt-4.1-nano',
-		'gpt-5',
-		'gpt-5-chat',
-		'gpt-5-mini',
-		'gpt-5-nano'
-	]); // Will be populated from API
+	let summaryModelOptions = $state<string[]>([]); // Will be populated from API
 
 	// --- EFFECTS ---
 	$effect(() => {
@@ -720,7 +708,7 @@
 	function openSummarizeDialog(record: AudioRecord) {
 		recordToSummarize = record;
 		selectedTemplateId = '';
-		selectedSummaryModel = 'gpt-3.5-turbo'; // Reset to default
+		selectedSummaryModel = 'gpt-5-nano'; // Reset to default
 		isSummarizeDialogOpen = true;
 	}
 
