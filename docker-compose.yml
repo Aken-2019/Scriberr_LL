@@ -16,7 +16,7 @@ services:
     environment:
       # OpenAI API Key - Set this to your actual API key
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-      - OPENAI_API_BASE=${OPENAI_API_BASE:-}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
       # Session Key - Generate a secure random key for production
       # You can generate one with: openssl rand -base64 32
       - SESSION_KEY=${SESSION_KEY:-}
@@ -25,6 +25,8 @@ services:
       # Default username and passwords
       - SCRIBERR_USERNAME=${SCRIBERR_USERNAME:-admin}
       - SCRIBERR_PASSWORD=${SCRIBERR_PASSWORD:-password}
+      # Optional to limit model options
+      - SCRIBERR_OPENAI_MODELS=${SRIBERR_OPENAI_MODELS:-}
     volumes:
       # Persist database and storage files
       - ./storage:/app/storage

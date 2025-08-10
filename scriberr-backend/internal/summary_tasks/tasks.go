@@ -61,7 +61,17 @@ func Init() {
 		if apiKey == "" {
 			log.Println("WARNING: OPENAI_API_KEY environment variable not set. OpenAI summarization will not work.")
 		} else {
-			openaiClient = openai.NewClient(apiKey)
+			// Create config with API key
+			config := openai.DefaultConfig(apiKey)
+			
+			// Check for custom base URL
+			if baseURL := os.Getenv("OPENAI_BASE_URL"); baseURL != "" {
+				config.BaseURL = baseURL
+				log.Printf("Using custom OpenAI base URL: %s\n", baseURL)
+			}
+			
+			// Create client with config
+			openaiClient = openai.NewClientWithConfig(config)
 			log.Println("OpenAI client initialized")
 		}
 
@@ -238,7 +248,9 @@ func worker() {
 		}
 
 		// 3. Call AI API (OpenAI or Ollama)
-		finalPrompt := template.Prompt + "\n\n---\n\n" + fullTranscriptText + "\n\n---\n\nProvide a summary in markdown format. Return only the summary without code blocks or additional text."
+		finalPrompt := template.Prompt + "\n\n---\n\n" + fullTranscriptText
+		// The additional part is commented out to let user to have full control from the template		
+		// finalPrompt += "\n\n---\n\nProvide a summary in markdown format. Return only the summary without code blocks or additional text."
 
 		var summaryText string
 
@@ -311,13 +323,42 @@ func updateJobStatus(jobID string, status JobStatus, errorMsg string) {
 	}
 }
 
+// getOpenAiModels reads custom models from environment variables
+func getOpenAiModels() []string {
+	// Read custom models from environment variable
+	// Format: SCRIBERR_OPENAI_MODELS="model1,model2,model3"
+	if customModelsStr := os.Getenv("SCRIBERR_OPENAI_MODELS"); customModelsStr != "" {
+		models := strings.Split(customModelsStr, ",")
+		// Trim whitespace and filter out empty strings
+		var result []string
+		for _, m := range models {
+			if trimmed := strings.TrimSpace(m); trimmed != "" {
+				result = append(result, trimmed)
+			}
+		}
+		if len(result) > 0 {
+			return result
+		}
+	}
+	// Return default models if no custom models are specified
+	return []string{
+		"gpt-4.1",
+		"gpt-4.1-mini",
+		"gpt-4.1-nano",
+		"gpt-5",
+		"gpt-5-chat",
+		"gpt-5-mini",
+		"gpt-5-nano",
+	}
+}
+
 // GetAvailableModels returns all available models for summarization
 func GetAvailableModels() (map[string][]string, error) {
 	models := make(map[string][]string)
 	
-	// Add OpenAI models
-	openaiModels := []string{"gpt-3.5-turbo", "gpt-4", "gpt-4-turbo", "gpt-4o", "gpt-4o-mini"}
-	models["openai"] = openaiModels
+	// Get OpenAI models (custom or default)
+	models["openai"] = getOpenAiModels()
+
 	
 	// Add Ollama models if available
 	if ollamaClient != nil && ollamaClient.IsAvailable(context.Background()) {

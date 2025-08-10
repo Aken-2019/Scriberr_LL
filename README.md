@@ -23,10 +23,13 @@ The base features can be found on the [Scriberr](https://github.com/rishikanthc/
 2. Create a `.env` to include the essential environment variables
 ```
 OPENAI_API_KEY=<your_openai_api_key>
+OPENAI_BASE_URL=<your_openai_base_url>
 SESSION_KEY=<your_session_key>
 HF_TOKEN=<your_hf_token>
 SCRIBERR_USERNAME=<your_scriberr_username>
 SCRIBERR_PASSWORD=<your_scriberr_password>
+# optional to constrain model options
+SRIBERR_OPENAI_MODELS="gpt-5-chat,gpt-5-mini"
 ```
 3. Run `docker compose up -d` to start the container and you can access the application at port `8080`
 

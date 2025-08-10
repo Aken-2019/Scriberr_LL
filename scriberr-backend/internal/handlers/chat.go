@@ -412,7 +412,17 @@ func generateChatResponse(messages []models.ChatMessage, userMessage, model stri
 			return "", fmt.Errorf("OpenAI API key not configured")
 		}
 
-		client := openai.NewClient(apiKey)
+		// Create config with API key
+		config := openai.DefaultConfig(apiKey)
+		
+		// Check for custom base URL
+		if baseURL := os.Getenv("OPENAI_BASE_URL"); baseURL != "" {
+			config.BaseURL = baseURL
+			log.Printf("Using custom OpenAI base URL: %s\n", baseURL)
+		}
+		
+		// Create client with config
+		client := openai.NewClientWithConfig(config)
 		
 		// Convert messages to OpenAI format
 		var openaiMessages []openai.ChatCompletionMessage
