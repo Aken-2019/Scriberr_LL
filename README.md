@@ -29,7 +29,7 @@ HF_TOKEN=<your_hf_token>
 SCRIBERR_USERNAME=<your_scriberr_username>
 SCRIBERR_PASSWORD=<your_scriberr_password>
 # optional to constrain model options
-SRIBERR_OPENAI_MODELS="gpt-5-chat,gpt-5-mini"
+SCRIBERR_OPENAI_MODELS="gpt-5-chat,gpt-5-mini"
 ```
 3. Run `docker compose up -d` to start the container and you can access the application at port `8080`
 
