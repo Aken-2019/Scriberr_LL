@@ -348,7 +348,7 @@
 					<input type="checkbox" bind:checked={autoPause} class="sr-only peer">
 					<div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
 				</div>
-				<span class="text-sm font-medium text-gray-300 whitespace-nowrap">Auto-pause</span>
+				<span class="text-sm font-medium text-gray-300 whitespace-nowrap">Segment Auto-pause</span>
 			</label>
 
 			<!-- Playback Speed -->
