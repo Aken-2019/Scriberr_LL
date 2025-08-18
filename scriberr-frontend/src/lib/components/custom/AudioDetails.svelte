@@ -117,6 +117,7 @@
 				const timeToEnd = currentSegment.end - currentTime;
 				if (timeToEnd <= 0.1) { // 100ms buffer
 					audioPlayer.pause();
+					audioPlayer.currentTime = currentSegment.end;
 					lastPausedSegmentIndex = currentSegment.index;
 				}
 			}
