@@ -326,25 +326,35 @@
 		<p>{errorMessage}</p>
 	</div>
 {:else if record}
-	<div class="grid gap-6">
-		<div class="flex items-center gap-4 w-full">
+	<div class="space-y-4 w-full">
+		<!-- Audio Player -->
+		<div class="w-full">
 			<audio
 				bind:this={audioPlayer}
 				src={`/api/audio/file/${record.id}`}
 				controls
-				class="flex-1"
+				class="w-full h-12"
 				onplay={handlePlay}
 			>
 				Your browser does not support the audio element.
 			</audio>
-			<div class="flex items-center gap-4">
-				<label class="relative inline-flex items-center cursor-pointer">
+		</div>
+
+		<!-- Controls -->
+		<div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
+			<!-- Auto-pause Toggle -->
+			<label class="flex items-center gap-2 cursor-pointer group">
+				<div class="relative inline-flex items-center">
 					<input type="checkbox" bind:checked={autoPause} class="sr-only peer">
 					<div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-					<span class="ml-2 text-sm font-medium text-gray-300">Auto-pause</span>
-				</label>
-				<div class="flex items-center gap-2 w-48">
-					<Gauge class="h-4 w-4 text-gray-400" />
+				</div>
+				<span class="text-sm font-medium text-gray-300 whitespace-nowrap">Auto-pause</span>
+			</label>
+
+			<!-- Playback Speed -->
+			<div class="flex items-center gap-2 w-full sm:w-auto">
+				<Gauge class="h-4 w-4 text-gray-400 flex-shrink-0" />
+				<div class="flex items-center gap-2 w-full">
 					<input
 						type="range"
 						min="0.5"
@@ -357,16 +367,19 @@
 						}}
 						class="w-full h-2 bg-gray-400 rounded-lg appearance-none cursor-pointer accent-blue-500"
 					/>
-					<span class="text-xs text-gray-400 w-8 text-right">{playbackRate.toFixed(1)}x</span>
+					<span class="text-xs text-gray-400 w-8 text-right whitespace-nowrap">{playbackRate.toFixed(1)}x</span>
 				</div>
 			</div>
 		</div>
 
-	</div>
-	<div class="text-xs text-gray-500 text-left -mt-4 mb-2 pl-1">
-		Use <kbd class="kbd kbd-sm">↑</kbd> <kbd class="kbd kbd-sm">↓</kbd> to navigate segments • 
-		<kbd class="kbd kbd-sm">Enter</kbd> to replay segment • 
-		<kbd class="kbd kbd-sm">Space</kbd> to play/pause
+		<!-- Keyboard Shortcuts -->
+		<div class="text-xs text-gray-500 space-x-1">
+			<span class="inline-flex items-center gap-1"><kbd class="kbd kbd-xs">↑</kbd><kbd class="kbd kbd-xs">↓</kbd>Navigate</span>
+			<span class="mx-1">•</span>
+			<span class="inline-flex items-center gap-1"><kbd class="kbd kbd-xs">Enter</kbd> Replay</span>
+			<span class="mx-1">•</span>
+			<span class="inline-flex items-center gap-1"><kbd class="kbd kbd-xs">Space</kbd> Play/Pause</span>
+		</div>
 	</div>
 	<div class="flex-1 overflow-auto">
 		<div class="flex items-center justify-between border-b border-gray-700">
