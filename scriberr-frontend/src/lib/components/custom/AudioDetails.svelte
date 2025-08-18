@@ -362,140 +362,154 @@
 			</div>
 		</div>
 
-		<div class="flex-1 overflow-auto">
-			<div class="flex items-center justify-between border-b border-gray-700">
-				<div class="flex">
+	</div>
+	<div class="text-xs text-gray-500 text-left -mt-4 mb-2 pl-1">
+		Use <kbd class="kbd kbd-sm">↑</kbd> <kbd class="kbd kbd-sm">↓</kbd> to navigate segments • 
+		<kbd class="kbd kbd-sm">Enter</kbd> to replay segment • 
+		<kbd class="kbd kbd-sm">Space</kbd> to play/pause
+	</div>
+	<div class="flex-1 overflow-auto">
+		<div class="flex items-center justify-between border-b border-gray-700">
+			<div class="flex">
+				<button
+					class="px-4 py-2 text-sm font-medium transition-colors {activeTab === 'transcript'
+						? 'border-b-2 border-blue-500 text-white'
+						: 'text-gray-400 hover:text-white'}"
+					onclick={() => (activeTab = 'transcript')}
+				>
+					Transcript
+				</button>
+				{#if record.summary}
 					<button
-						class="px-4 py-2 text-sm font-medium transition-colors {activeTab === 'transcript'
+						class="px-4 py-2 text-sm font-medium transition-colors {activeTab === 'summary'
 							? 'border-b-2 border-blue-500 text-white'
 							: 'text-gray-400 hover:text-white'}"
-						onclick={() => (activeTab = 'transcript')}
+						onclick={() => (activeTab = 'summary')}
 					>
-						Transcript
-					</button>
-					{#if record.summary}
-						<button
-							class="px-4 py-2 text-sm font-medium transition-colors {activeTab === 'summary'
-								? 'border-b-2 border-blue-500 text-white'
-								: 'text-gray-400 hover:text-white'}"
-							onclick={() => (activeTab = 'summary')}
-						>
-							Summary
-						</button>
-					{/if}
-				</div>
-
-				{#if activeTab === 'transcript' && segments.length > 0}
-					<Popover.Root bind:open={isDownloadPopoverOpen}>
-						<Popover.Trigger
-							class="inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:bg-gray-700 hover:text-white"
-							title="Download transcript"
-						>
-							<Download class="h-4 w-4" />
-						</Popover.Trigger>
-						<Popover.Content class="w-48 border-none bg-gray-800 p-2" side="bottom" align="end">
-							<div class="space-y-1">
-								<button
-									class="flex w-full items-center gap-2 rounded px-2 py-2 text-sm text-gray-200 hover:bg-gray-700"
-									onclick={() => downloadTranscript('txt')}
-								>
-									<FileText class="h-4 w-4" />
-									Download as TXT
-								</button>
-								<button
-									class="flex w-full items-center gap-2 rounded px-2 py-2 text-sm text-gray-200 hover:bg-gray-700"
-									onclick={() => downloadTranscript('json')}
-								>
-									<FileJson class="h-4 w-4" />
-									Download as JSON
-								</button>
-								<button
-									class="flex w-full items-center gap-2 rounded px-2 py-2 text-sm text-gray-200 hover:bg-gray-700"
-									onclick={() => downloadTranscript('srt')}
-								>
-									<FileVideo class="h-4 w-4" />
-									Download as SRT
-								</button>
-							</div>
-						</Popover.Content>
-					</Popover.Root>
-				{:else if activeTab === 'summary' && record.summary}
-					<button
-						class="inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:bg-gray-700 hover:text-white"
-						title="Download summary"
-						onclick={downloadSummary}
-					>
-						<Download class="h-4 w-4" />
+						Summary
 					</button>
 				{/if}
 			</div>
-			<ScrollArea
-				class="max-h-[700px] rounded-md border-none bg-gray-800 p-4 shadow-sm shadow-gray-800 lg:h-[700px]"
-			>
-				{#if activeTab === 'transcript'}
-					<div class="space-y-4">
-						{#if segments.length > 0}
-							{#if hasDiarization(segments)}
-								<div class="mb-4 flex items-center gap-2">
-									<span
-										class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800"
-									>
-										Speakers
-									</span>
-									<span class="text-sm text-gray-400">Speaker diarization is enabled</span>
-								</div>
-							{/if}
-							{#each segments as segment}
-								{@const isActive = currentTime >= segment.start && currentTime < segment.end}
-								{@const speakerName = getSpeakerDisplayName(segment.speaker)}
-								<div
-									class="flex cursor-pointer flex-col gap-1 rounded-sm p-1 transition-colors {isActive
-										? 'bg-gray-700 ring-2 ring-blue-500 ring-opacity-50'
-										: 'hover:bg-gray-700'}"
-									data-segment-index={segment.index}
-									onclick={(e) => handleSegmentClick(e, segment)}
-									role="button"
-									tabindex={isActive ? 0 : -1}
-									onkeydown={(e) => handleAudioKeyDown(e, segment)}
+
+			{#if activeTab === 'transcript' && segments.length > 0}
+				<Popover.Root bind:open={isDownloadPopoverOpen}>
+					<Popover.Trigger
+						class="inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:bg-gray-700 hover:text-white"
+						title="Download transcript"
+					>
+						<Download class="h-4 w-4" />
+					</Popover.Trigger>
+					<Popover.Content class="w-48 border-none bg-gray-800 p-2" side="bottom" align="end">
+						<div class="space-y-1">
+							<button
+								class="flex w-full items-center gap-2 rounded px-2 py-2 text-sm text-gray-200 hover:bg-gray-700"
+								onclick={() => downloadTranscript('txt')}
+							>
+								<FileText class="h-4 w-4" />
+								Download as TXT
+							</button>
+							<button
+								class="flex w-full items-center gap-2 rounded px-2 py-2 text-sm text-gray-200 hover:bg-gray-700"
+								onclick={() => downloadTranscript('json')}
+							>
+								<FileJson class="h-4 w-4" />
+								Download as JSON
+							</button>
+							<button
+								class="flex w-full items-center gap-2 rounded px-2 py-2 text-sm text-gray-200 hover:bg-gray-700"
+								onclick={() => downloadTranscript('srt')}
+							>
+								<FileVideo class="h-4 w-4" />
+								Download as SRT
+							</button>
+						</div>
+					</Popover.Content>
+				</Popover.Root>
+			{:else if activeTab === 'summary' && record.summary}
+				<button
+					class="inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:bg-gray-700 hover:text-white"
+					title="Download summary"
+					onclick={downloadSummary}
+				>
+					<Download class="h-4 w-4" />
+				</button>
+			{/if}
+		</div>
+		<ScrollArea
+			class="max-h-[700px] rounded-md border-none bg-gray-800 p-4 shadow-sm shadow-gray-800 lg:h-[700px]"
+		>
+			{#if activeTab === 'transcript'}
+				<div class="space-y-4">
+					{#if segments.length > 0}
+						{#if hasDiarization(segments)}
+							<div class="mb-4 flex items-center gap-2">
+								<span
+									class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800"
 								>
-									<div class="flex items-center gap-2">
-										<button 
-											onclick={(e) => { e.stopPropagation(); seekTo(segment.start); }}
-											class="text-gray-400 hover:text-neon-100 focus:outline-none"
-											aria-label="Play from here"
-										>
-											<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-												<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
-											</svg>
-										</button>
-										<div class="text-sm font-medium {isActive ? 'text-neon-100' : 'text-gray-400'}">
-											{formatTime(segment.start)}
-										</div>
-										{#if speakerName}
-											<span
-												class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800"
-											>
-												{speakerName}
-											</span>
-										{/if}
-									</div>
-									<p class="text-gray-200">{segment.text}</p>
-								</div>
-							{/each}
-						{:else}
-							<div class="flex h-full items-center justify-center text-center text-gray-500">
-								<p>
-									No transcript available for this recording. <br />Right-click to transcribe.
-								</p>
+									Speakers
+								</span>
+								<span class="text-sm text-gray-400">Speaker diarization is enabled</span>
 							</div>
 						{/if}
-					</div>
-				{:else if activeTab === 'summary'}
-					<div class="rounded-md bg-gray-800 p-4">
-						<MarkdownRenderer content={record.summary} />
-					</div>
-				{/if}
-			</ScrollArea>
-		</div>
+						{#each segments as segment}
+							{@const isActive = currentTime >= segment.start && currentTime < segment.end}
+							{@const speakerName = getSpeakerDisplayName(segment.speaker)}
+							<div
+								class="flex cursor-pointer flex-col gap-1 rounded-sm p-1 transition-colors {isActive
+									? 'bg-gray-700 ring-2 ring-blue-500 ring-opacity-50'
+									: 'hover:bg-gray-700'}"
+								data-segment-index={segment.index}
+								onclick={(e) => handleSegmentClick(e, segment)}
+								role="button"
+								tabindex={isActive ? 0 : -1}
+								onkeydown={(e) => handleAudioKeyDown(e, segment)}
+							>
+								<div class="flex items-center gap-2">
+									<button 
+										onclick={(e) => { e.stopPropagation(); seekTo(segment.start); }}
+										class="text-gray-400 hover:text-neon-100 focus:outline-none"
+										aria-label="Play from here"
+									>
+										<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+											<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+										</svg>
+									</button>
+									<div class="text-sm font-medium {isActive ? 'text-neon-100' : 'text-gray-400'}">
+										{formatTime(segment.start)}
+									</div>
+									{#if speakerName}
+										<span
+											class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800"
+										>
+											{speakerName}
+										</span>
+									{/if}
+								</div>
+								<p class="text-gray-200">{segment.text}</p>
+							</div>
+						{/each}
+					{:else}
+						<div class="flex h-full items-center justify-center text-center text-gray-500">
+							<p>
+								No transcript available for this recording. <br />Right-click to transcribe.
+							</p>
+						</div>
+					{/if}
+				</div>
+			{:else if activeTab === 'summary'}
+				<div class="rounded-md bg-gray-800 p-4">
+					<MarkdownRenderer content={record.summary} />
+				</div>
+			{/if}
+		</ScrollArea>
 	</div>
+</div>
 {/if}
+
+<style>
+	kbd {
+	  border-radius: 2px;
+	  padding: 2px;
+	  border: 1px solid black;
+	}
+</style>
