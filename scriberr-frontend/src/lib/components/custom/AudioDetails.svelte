@@ -56,6 +56,7 @@
 	let autoPause = $state(true);
 	let lastPausedSegmentIndex = $state(-1);
 	let animationFrameId = $state<number | null>(null);
+	let activeSegmentElement = $state<HTMLElement | null>(null);
 
 	// Lifecycle
 	onMount(() => {
@@ -67,23 +68,58 @@
 		};
 	});
 
+	function focusActiveSegment() {
+		if (!segments.length) return;
+
+		// Find the currently active segment
+		const activeSegmentIndex = segments.findIndex(
+			segment => currentTime >= segment.start && currentTime < segment.end
+		);
+
+		if (activeSegmentIndex >= 0) {
+			// Get the active segment element
+			const segmentElement = document.querySelector(`[data-segment-index="${activeSegmentIndex}"]`) as HTMLElement;
+			if (segmentElement && segmentElement !== activeSegmentElement) {
+				activeSegmentElement = segmentElement;
+
+				// Scroll the element into view smoothly
+				segmentElement.scrollIntoView({
+					behavior: 'smooth',
+					block: 'center',
+					inline: 'nearest'
+				});
+
+				// Focus the element for keyboard accessibility
+				segmentElement.focus();
+			}
+		}
+	}
+
 	function checkSegmentEnd() {
-		if (!audioPlayer || !autoPause || audioPlayer.paused) {
+		if (!audioPlayer) {
 			animationFrameId = requestAnimationFrame(checkSegmentEnd);
 			return;
 		}
 
 		currentTime = audioPlayer.currentTime;
-		const currentSegment = segments.find(segment => 
-			currentTime >= segment.start && 
-			currentTime < segment.end
-		);
 
-		if (currentSegment && currentSegment.index !== lastPausedSegmentIndex) {
-			const timeToEnd = currentSegment.end - currentTime;
-			if (timeToEnd <= 0.1) { // 100ms buffer
-				audioPlayer.pause();
-				lastPausedSegmentIndex = currentSegment.index;
+		// Focus the active segment
+		focusActiveSegment();
+
+		// Handle auto-pause if enabled
+		if (autoPause && !audioPlayer.paused) {
+			const currentSegment = segments.find(segment => 
+				currentTime >= segment.start && 
+				currentTime < segment.end
+			);
+
+			if (currentSegment && currentSegment.index !== lastPausedSegmentIndex) {
+				const timeToEnd = currentSegment.end - currentTime;
+				if (timeToEnd <= 0.1) { // 100ms buffer
+					audioPlayer.pause();
+					audioPlayer.currentTime = currentSegment.end;
+					lastPausedSegmentIndex = currentSegment.index;
+				}
 			}
 		}
 
