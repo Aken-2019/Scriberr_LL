@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { ScrollArea } from '$lib/components/ui/scroll-area';
 	import * as Popover from '$lib/components/ui/popover/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -48,12 +49,51 @@
 	let activeTab = $state<'transcript' | 'summary'>('transcript');
 	let isLoading = $state(true);
 	let errorMessage = $state<string | null>(null);
-	let audioPlayer = $state<HTMLAudioElement | null>(null);
 	let currentTime = $state(0);
-	let duration = $state(0);
-	let playbackRate = $state(1.0);
+	let audioPlayer = $state<HTMLAudioElement | null>(null);
 	let isDownloadPopoverOpen = $state(false);
-	let activeSegmentElement = $state<HTMLElement | null>(null);
+	let playbackRate = $state(1.0);
+	let autoPause = $state(true);
+	let lastPausedSegmentIndex = $state(-1);
+	let animationFrameId = $state<number | null>(null);
+
+	// Lifecycle
+	onMount(() => {
+		animationFrameId = requestAnimationFrame(checkSegmentEnd);
+		return () => {
+			if (animationFrameId) {
+				cancelAnimationFrame(animationFrameId);
+			}
+		};
+	});
+
+	function checkSegmentEnd() {
+		if (!audioPlayer || !autoPause || audioPlayer.paused) {
+			animationFrameId = requestAnimationFrame(checkSegmentEnd);
+			return;
+		}
+
+		currentTime = audioPlayer.currentTime;
+		const currentSegment = segments.find(segment => 
+			currentTime >= segment.start && 
+			currentTime < segment.end
+		);
+
+		if (currentSegment && currentSegment.index !== lastPausedSegmentIndex) {
+			const timeToEnd = currentSegment.end - currentTime;
+			if (timeToEnd <= 0.1) { // 100ms buffer
+				audioPlayer.pause();
+				lastPausedSegmentIndex = currentSegment.index;
+			}
+		}
+
+		animationFrameId = requestAnimationFrame(checkSegmentEnd);
+	}
+
+	function handlePlay() {
+		// Reset the last paused segment when user manually starts playing
+		lastPausedSegmentIndex = -1;
+	}
 
 	async function fetchRecordDetails() {
 		if (!recordId) return;
@@ -133,40 +173,6 @@
 
 	function hasDiarization(segments: TranscriptSegment[]): boolean {
 		return segments.some((segment) => segment.speaker);
-	}
-
-	function handleTimeUpdate() {
-		if (!audioPlayer) return;
-		currentTime = audioPlayer.currentTime;
-		
-		// Focus the active segment
-		focusActiveSegment();
-	}
-
-	function focusActiveSegment() {
-		if (!segments.length) return;
-		
-		// Find the currently active segment
-		const activeSegmentIndex = segments.findIndex(
-			segment => currentTime >= segment.start && currentTime < segment.end
-		);		
-		if (activeSegmentIndex >= 0) {
-			// Get the active segment element
-			const segmentElement = document.querySelector(`[data-segment-index="${activeSegmentIndex}"]`) as HTMLElement;
-			if (segmentElement && segmentElement !== activeSegmentElement) {
-				activeSegmentElement = segmentElement;
-				
-				// Scroll the element into view smoothly
-				segmentElement.scrollIntoView({
-					behavior: 'smooth',
-					block: 'center',
-					inline: 'nearest'
-				});
-				
-				// Focus the element for keyboard accessibility
-				segmentElement.focus();
-			}
-		}
 	}
 
 	function handleSegmentClick(e: MouseEvent, segment: TranscriptSegment) {
@@ -271,10 +277,10 @@
 		if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
 			event.preventDefault();
 			if (!segment) return;
-			
+
 			const direction = event.key === 'ArrowDown' ? 1 : -1;
 			const nextIndex = Math.min(Math.max(0, segment.index + direction), segments.length - 1);
-			
+
 			if (nextIndex !== segment.index) {
 				const nextElement = document.querySelector(`[data-segment-index="${nextIndex}"]`);
 				if (nextElement) {
@@ -322,32 +328,39 @@
 {:else if record}
 	<div class="grid gap-6">
 		<div class="flex items-center gap-4 w-full">
-		<audio
-			bind:this={audioPlayer}
-			src={`/api/audio/file/${record.id}`}
-			controls
-			class="flex-1"
-			ontimeupdate={handleTimeUpdate}
-		>
-			Your browser does not support the audio element.
-		</audio>
-		<div class="flex items-center gap-2 w-48">
-			<Gauge class="h-4 w-4 text-gray-400" />
-			<input
-				type="range"
-				min="0.5"
-				max="1.5"
-				step="0.1"
-				bind:value={playbackRate}
-				oninput={(e) => {
-					const target = e.target as HTMLInputElement;
-					if (audioPlayer) audioPlayer.playbackRate = parseFloat(target.value);
-				}}
-				class="w-full h-2 bg-gray-400 rounded-lg appearance-none cursor-pointer accent-blue-500"
-			/>
-			<span class="text-xs text-gray-400 w-8 text-right">{playbackRate.toFixed(1)}x</span>
+			<audio
+				bind:this={audioPlayer}
+				src={`/api/audio/file/${record.id}`}
+				controls
+				class="flex-1"
+				onplay={handlePlay}
+			>
+				Your browser does not support the audio element.
+			</audio>
+			<div class="flex items-center gap-4">
+				<label class="relative inline-flex items-center cursor-pointer">
+					<input type="checkbox" bind:checked={autoPause} class="sr-only peer">
+					<div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+					<span class="ml-2 text-sm font-medium text-gray-300">Auto-pause</span>
+				</label>
+				<div class="flex items-center gap-2 w-48">
+					<Gauge class="h-4 w-4 text-gray-400" />
+					<input
+						type="range"
+						min="0.5"
+						max="1.5"
+						step="0.1"
+						bind:value={playbackRate}
+						oninput={(e) => {
+							const target = e.target as HTMLInputElement;
+							if (audioPlayer) audioPlayer.playbackRate = parseFloat(target.value);
+						}}
+						class="w-full h-2 bg-gray-400 rounded-lg appearance-none cursor-pointer accent-blue-500"
+					/>
+					<span class="text-xs text-gray-400 w-8 text-right">{playbackRate.toFixed(1)}x</span>
+				</div>
+			</div>
 		</div>
-	</div>
 
 		<div class="flex-1 overflow-auto">
 			<div class="flex items-center justify-between border-b border-gray-700">
