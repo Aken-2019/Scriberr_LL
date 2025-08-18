@@ -503,7 +503,7 @@
 			{/if}
 		</ScrollArea>
 	</div>
-</div>
+
 {/if}
 
 <style>
