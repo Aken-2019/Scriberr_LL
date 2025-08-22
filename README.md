@@ -5,7 +5,7 @@ The repo is based on the fantastic [Scriberr](https://github.com/rishikanthc/Scr
 
 ## Features
 ### Major Differences
-The base features can be found on the [Scriberr](https://github.com/rishikanthc/Scriberr) project. Here are the mayjor differences between this fork and the original project:
+The base features can be found on the [Scriberr](https://github.com/rishikanthc/Scriberr) project. Here are the major differences between this fork and the original project:
 - It has better keyboard ineractions on the audio detail page: ![Better User Interactions](./screenshots/LL_Transcript_User_Interactions.png)
   - `Space` key to play and pause the audio player when any audio segment is in focuse.
   - `↑` or `↓` key to navigate among segments.
