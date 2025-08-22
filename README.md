@@ -23,6 +23,9 @@ The base features can be found on the [Scriberr](https://github.com/rishikanthc/
 ## Quick Start
 
 ### Hardware Requirement
+It requires at least 2GB free RAM for transcribing audios with bactch size set to 2.
+
+If you have a lowend server having RAM less that, you can transcribe audios in a more powerful machine and then upload your transcript to the server. For only running the application and serving the frontend, it requires very little resource. Its running container take up less them 100MB memory.
 
 ### Running with Docker Compose (CPU Only)
 1. Download the [docker-compose.yml](./docker-compose.yml) file to your working directory.
